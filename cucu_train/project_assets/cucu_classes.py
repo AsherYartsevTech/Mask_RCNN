@@ -55,8 +55,6 @@ class genDataset(utils.Dataset):
         initiateConfiguration()
         initiateClassificationNames()
 
-
-    
     def load_shapes(self, numOfImagesToGenerate, height, width):
         """
         Generate the requested number of synthetic images.
@@ -84,15 +82,15 @@ class genDataset(utils.Dataset):
         info = self.image_info[specification_id]
                 
         # load shape of pre-specified background
-        y_max, x_max ,_ = np.asarray(self.containerOfObjForGeneratingImages['BG'][info['bgIndex']]).shape
-        # todo: change y_max to imageHeight and x_max to imageWidth
+        imageHeight, imageWidth ,_ = np.asarray(self.containerOfObjForGeneratingImages['BG'][info['bgIndex']]).shape
+        
         # pick random up-right corner
-        x_topRight = randint(x_max - self.config.IMAGE_MAX_DIM//2 , x_max)
-        y_topRight = randint(y_max - self.config.IMAGE_MAX_DIM//2 , y_max)
+        x_topRight = randint(imageWidth - self.config.IMAGE_MAX_DIM//2 , imageWidth)
+        y_topRight = randint(imageHeight - self.config.IMAGE_MAX_DIM//2 , imageHeight)
         x_bottomLeft = x_topRight - self.config.IMAGE_MAX_DIM
         y_bottomLeft = y_topRight - self.config.IMAGE_MAX_DIM
+        
         # build random area of configure IMAGE_SHAPE for net, which is IMAGE_MAX_DIM*IMAGE_MAX_DIM
-
         # temporary values (left, upper, right, lower)-tuple
         if self.config.IMAGE_MAX_DIM == 1024:
             area = (0, 0, 1024, 1024)
@@ -116,7 +114,6 @@ class genDataset(utils.Dataset):
         else:
             super(self.__class__).image_reference(self, image_id)
 
-    
     def draw_shape_without_transparency(self, image, shape, location, scale, angle, index):
         """
         Draws a shape from the given specs.
@@ -127,7 +124,6 @@ class genDataset(utils.Dataset):
         image = add_imageWithoutTransparency(image, np.array(self.containerOfObjForGeneratingImages[shape][index]), topLeftX_location, topLeftY_location, x_scale, y_scale, angle)
         
         return image
-
 
     def draw_shape(self, imageToDrawShapeOn, shape, location, scale, angle, index, erode_coeff=5, gaussian_coeff=3):
         """
@@ -144,6 +140,35 @@ class genDataset(utils.Dataset):
         
         return Collage
     
+    def GenerateRandomSpecsForImage(self, height, width):
+        """Creates random specifications of an image with multiple shapes.
+        Returns the background color of the image and a list of shape
+        specifications that can be used to draw the image.
+        """
+        #asher todo: observe and remove bg_Color
+        # Pick random background color
+        bg_color = np.array([randint(0, 255) for _ in range(3)])
+        # Generate a few random shapes and record their
+        # bounding boxes
+        shapes = []
+        boxes = []
+
+        # pick objects number in generated image
+        randomObjAmmountInGeneratedImage = randint(math.floor(cucuConf.MIN_GENERATED_OBJECTS * cucuConf.SCALE_OBJECT_NUM_NEXT_EPOCH_ROUND),\
+                                            math.floor(cucuConf.MAX_GENERATED_OBJECTS * cucuConf.SCALE_OBJECT_NUM_NEXT_EPOCH_ROUND))
+            
+        for _ in range(randomObjAmmountInGeneratedImage):
+            shape, location, scale, angle, index = self.GenerateRandomSpecsForObjInImage(height, width)
+            y, x,channels = np.asarray(self.containerOfObjForGeneratingImages[shape][index]).shape
+        
+            shapes.append((shape, location, scale, angle, index))
+            boxes.append([location[1], location[0], location[1] + y, location[0] + x])
+            
+        # Apply non-max suppression with 0.3 threshold to avoid
+        # shapes covering each other
+        keep_ixs = utils.non_max_suppression(np.array(boxes), np.arange(randomObjAmmountInGeneratedImage), 0.7)
+        shapes = [s for i, s in enumerate(shapes) if i in keep_ixs]
+        return bg_color, shapes
     
     def GenerateRandomSpecsForObjInImage(self, height, width):
         """Generates specifications of a random shape that interesects at least partially with given height ,width 
@@ -172,36 +197,6 @@ class genDataset(utils.Dataset):
 
         return shape, (topLeftX_location, topLeftY_location), (x_scale, y_scale), angle, objIndexInContainer
     
-    def GenerateRandomSpecsForImage(self, height, width):
-        """Creates random specifications of an image with multiple shapes.
-        Returns the background color of the image and a list of shape
-        specifications that can be used to draw the image.
-        """
-        #asher todo: observe and remove bg_Color
-        # Pick random background color
-        bg_color = np.array([randint(0, 255) for _ in range(3)])
-        # Generate a few random shapes and record their
-        # bounding boxes
-        shapes = []
-        boxes = []
-
-        # pick objects number in generated image
-        randomObjAmmountInGeneratedImage = randint(math.floor(cucuConf.MIN_GENERATED_OBJECTS * cucuConf.SCALE_OBJECT_NUM_NEXT_EPOCH_ROUND),\
-                                            math.floor(cucuConf.MAX_GENERATED_OBJECTS * cucuConf.SCALE_OBJECT_NUM_NEXT_EPOCH_ROUND))
-            
-        for _ in range(randomObjAmmountInGeneratedImage):
-            shape, location, scale, angle, index = self.GenerateRandomSpecsForObjInImage(height, width)
-            y, x,channels = np.asarray(self.containerOfObjForGeneratingImages[shape][index]).shape
-        
-            shapes.append((shape, location, scale, angle, index))
-            boxes.append([location[1], location[0], location[1] + y, location[0] + x])
-            
-        # Apply non-max suppression wit 0.3 threshold to avoid
-        # shapes covering each other
-        keep_ixs = utils.non_max_suppression(np.array(boxes), np.arange(randomObjAmmountInGeneratedImage), 0.7)
-        shapes = [s for i, s in enumerate(shapes) if i in keep_ixs]
-        return bg_color, shapes
-    
     def load_mask(self, image_id):
         """
         Generate instance masks for shapes of the given image ID.
@@ -210,10 +205,9 @@ class genDataset(utils.Dataset):
         """
         info = self.image_info[image_id]
         shapes = info['shapes']
-        count = len(shapes)
-        mask = np.zeros([info['height'], info['width'], count], dtype=np.uint8)        
+        classificationsAmmount = len(shapes)
+        mask = np.zeros([info['height'], info['width'], classificationsAmmount], dtype=np.uint8)        
 
-        #asher note: for now itterates only once on cucumber shape
         for i, (shape, location, scale, angle, index) in enumerate(info['shapes']):
             image = np.zeros([info['height'], info['width'], 3], dtype=np.uint8)
             # save in temp for easier inspection if needed
@@ -224,8 +218,7 @@ class genDataset(utils.Dataset):
         # Handle occlusions
         occlusion = np.logical_not(mask[:, :, -1]).astype(np.uint8)
         
-        #print(occlusion)
-        for i in range(count-2, -1, -1):
+        for i in range(classificationsAmmount-2, -1, -1):
             mask[:, :, i] = mask[:, :, i] * occlusion
             occlusion = np.logical_and(occlusion, np.logical_not(mask[:, :, i]))
        
@@ -240,58 +233,44 @@ import os
 import numpy as np
 import json
 from mrcnn import utils
-from project_assets.cocoapi.PythonAPI.pycocotools.coco import COCO
+from project_assets.cocoapi.PythonAPI.pycocotools.coco import COCO as cocoAnnotationsParser
 from project_assets.cocoapi.PythonAPI.pycocotools import mask as maskUtils
-
-
-
-
-
-
 
 class realDataset(utils.Dataset):
     def load_dataset(self,annotations_path, dataset_dir):
-        """Load a subset of the COCO dataset.
-        dataset_dir: The root directory of the COCO dataset.
-        subset: What to load (train, val, minival, valminusminival)
-        year: What dataset year to load (2014, 2017) as a string, not an integer
-        class_ids: If provided, only loads images that have the given classes.
-        class_map: TODO: Not implemented yet. Supports maping classes from
-            different datasets to the same class ID.
-        return_coco: If True, returns the COCO object.
-        auto_download: Automatically download and unzip MS-COCO images and annotations
+        """
+        function is based on COCO's load_dataset method, with slight changes
         """
 
-        coco = COCO(annotations_path)
+        parsedJson = cocoAnnotationsParser(annotations_path)
         image_dir = "{}".format(dataset_dir)
 
         # All classes
-        # asher todo: instead of coco lets add our categories
-        class_ids = sorted(coco.getCatIds())
+        class_ids = sorted(parsedJson.getCatIds())
 
         # All images or a subset?
         if class_ids:
             image_ids = []
             for id in class_ids:
-                image_ids.extend(list(coco.getImgIds(catIds=[id])))
+                image_ids.extend(list(parsedJson.getImgIds(catIds=[id])))
             # Remove duplicates
             image_ids = list(set(image_ids))
         else:
             # All images
-            image_ids = list(coco.imgs.keys())
+            image_ids = list(parsedJson.imgs.keys())
 
         # Add classes
         for i in class_ids:
-            self.add_class("coco", i, coco.loadCats(i)[0]["name"])
+            self.add_class("shapes", i, parsedJson.loadCats(i)[0]["name"])
 
         # Add images
         for i in image_ids:
             self.add_image(
-                "coco", image_id=i,
-                path=os.path.join(image_dir, coco.imgs[i]['file_name']),
-                width=coco.imgs[i]["width"],
-                height=coco.imgs[i]["height"],
-                annotations=coco.loadAnns(coco.getAnnIds(
+                "shapes", image_id=i,
+                path=os.path.join(image_dir, parsedJson.imgs[i]['file_name']),
+                width=parsedJson.imgs[i]["width"],
+                height=parsedJson.imgs[i]["height"],
+                annotations=parsedJson.loadAnns(parsedJson.getAnnIds(
                     imgIds=[i], catIds=class_ids, iscrowd=None)))
 
     def load_mask(self, image_id):
