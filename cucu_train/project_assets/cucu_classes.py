@@ -357,7 +357,8 @@ class realDataset(utils.Dataset):
 
 
 class project_paths(object):
-    def __init__(self, projectRootDir, TensorboardDir, trainedModelsDir,visualizeEvaluationsDir,trainOutputLog, cocoModelPath,trainDatasetDir, valDatasetDir, testDatasetDir,trainResultContainer,testAnnotationsDir=None):
+    def __init__(self, projectRootDir, TensorboardDir, trainedModelsDir,visualizeEvaluationsDir,trainOutputLog, \
+                cocoModelPath,trainDatasetDir, valDatasetDir, testDatasetDir,trainResultContainer,testAnnotationsDir=None):
         self.projectRootDir=projectRootDir
         self.TensorboardDir=TensorboardDir
         self.trainedModelsDir=trainedModelsDir
