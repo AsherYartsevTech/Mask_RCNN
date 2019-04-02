@@ -48,6 +48,7 @@ def initiateAllPathsForCurrentSession(rootDir,currentContainerDir,currentSession
     trainGenDatasetDir=       os.path.join(currentContainerDir, "project_dataset/generated/train_data"), 
     valGenDatasetDir=         os.path.join(currentContainerDir, "project_dataset/generated/valid_data"),
     
+    #
     trainRealDatasetDir = os.path.join(currentContainerDir, "project_dataset/real/train_data/dataset"),
     trainRealDatasetAnnotations = os.path.join(currentContainerDir, "project_dataset/real/train_data/annotations/annotations.json"),
     valRealDatasetDir = os.path.join(currentContainerDir, "project_dataset/real/val_data/dataset"),
@@ -85,9 +86,6 @@ currentContainerDir = constructContainerPath()
 # print('Enter full path for initial model weights:')
 # currentSessionInitialWeights=input()
 currentSessionInitialWeights ='/home/simon/Mask_RCNN/mask_rcnn_coco.h5'
-#asher todo: delete this debug if
-# if len(currentSessionInitialWeights) == 1:
-#     currentSessionInitialWeights ='/home/simon/Mask_RCNN/mask_rcnn_coco.h5'
 
 cucuPaths = initiateAllPathsForCurrentSession(rootDir,currentContainerDir,currentSessionInitialWeights)
 sys.path.append(cucuPaths.projectRootDir)  # To find local version of the library
@@ -97,6 +95,7 @@ cloneDataSetIntoSessionFolderTree()
 
 sys.stdout = CucuLogger(sys.stdout, cucuPaths.trainOutputLog + "/sessionLogger.txt")
 sys.stdout.getFromUserCurrentSessionSpecs()
+
 #print current session configuration to logger
 config.display()
 
