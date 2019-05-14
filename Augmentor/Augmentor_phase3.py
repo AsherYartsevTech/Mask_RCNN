@@ -143,9 +143,10 @@ def get_image_json_doc(orig_json, gt_image_path, new_id):
     return []
 
 def get_category_id(categories_map, color):
+    color = int(color.split('(')[1].split(',')[0])
     for category in categories_map:
-        if color[0] in category['colors']:
-            return category['id']
+        if int(categories_map[category]['colors'][0]) <= color <= int(categories_map[category]['colors'][-1]):
+            return category
     print('Error: can not find appropriate category id')
     return -1
 

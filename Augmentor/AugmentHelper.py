@@ -41,7 +41,7 @@ class AugmentHelper(object):
         augment_batch_rename(self.output_dataset_path)
         augment_reconstruct_json(self.output_dataset_path, self.annotation_file_path, categories_map)
         shutil.rmtree(self.ground_truth_path)   
-        purge(self.output_dataset_path, "ground_truth")
+        purge(self.output_dataset_path, "ground_truth_")
 
 augmentor = AugmentHelper("/home/simon/Documents/cucu_dataset/real/1024/cucumber/train/augmented", 
                             "/home/simon/Documents/cucu_dataset/real/512/cucumber/train/augmented")
