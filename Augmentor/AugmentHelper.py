@@ -43,9 +43,15 @@ class AugmentHelper(object):
         shutil.rmtree(self.ground_truth_path)   
         purge(self.output_dataset_path, "ground_truth_")
 
-augmentor = AugmentHelper("/home/simon/Documents/cucu_dataset/real/1024/cucumber/train/augmented", 
-                            "/home/simon/Documents/cucu_dataset/real/512/cucumber/train/augmented")
+augmentor = AugmentHelper("/home/simon/Documents/cucu_dataset/real/4000/cucumber/train/original", 
+                            "/home/simon/Documents/cucu_dataset/real/1024/cucumber/train/original")
 augmentor.generate() 
+
+augmentor = AugmentHelper("/home/simon/Documents/cucu_dataset/real/1024/cucumber/train/original", 
+                            "/home/simon/Documents/cucu_dataset/real/1024/cucumber/train/augmented")
+#todo asher: recomment everything
+augmentor.generate() 
+
 print("finish")
 
 
