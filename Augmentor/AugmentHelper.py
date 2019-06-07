@@ -35,10 +35,12 @@ class AugmentHelper(object):
     def configure(self):
         pass
 
-    def generate(self):
-        # simon - todo: finish implementation
+    def generate(self, action, augConfig):
         categories_map = augment_create_mask_files(self.src_dataset_path, self.annotation_file_path, self.ground_truth_path)
-        augment_perform_pipe(self.src_dataset_path, self.ground_truth_path, self.output_dataset_path)
+        if action is 'resize':
+            aug_PerformResizePipe(self.src_dataset_path, self.ground_truth_path, self.output_dataset_path, augConfig)
+        if action is 'augment':
+            aug_AugmentingStage(self.src_dataset_path, self.ground_truth_path, self.output_dataset_path, augConfig)
         augment_batch_rename(self.output_dataset_path)
         augment_reconstruct_json(self.output_dataset_path, self.annotation_file_path, categories_map)
         shutil.rmtree(self.ground_truth_path)   
@@ -47,13 +49,15 @@ class AugmentHelper(object):
 
 
 
-augmentorFirstPhase = AugmentHelper(augConfig['datasetFolderPath'] + "/real/4000/cucumber/train/original",
-                            augConfig['datasetFolderPath'] + "/cucu_dataset/real/1024/cucumber/train/original")
-augmentorFirstPhase.generate()
+aug_ResizeStage = AugmentHelper(augConfig['folderOfDatasetToBeManipulated'],
+                                    augConfig['outputFolderOfEquallyResizedDataset'])
+aug_ResizeStage.generate('resize', augConfig)
+#just emphasing the uselessness of this object after this stage
+del aug_ResizeStage
 
-augmentorSecondPhase = AugmentHelper(augConfig['datasetFolderPath'] + "/real/1024/cucumber/train/original",
-                            augConfig['datasetFolderPath'] + "real/1024/cucumber/train/augmented")
-augmentorSecondPhase.generate()
+aug_AugmentingStage = AugmentHelper(augConfig['outputFolderOfEquallyResizedDataset'],
+                                     augConfig['outputFolderOfAugmentedAndResizedDataset'])
+aug_AugmentingStage.generate('augment', augConfig)
 
 print("finish")
 
