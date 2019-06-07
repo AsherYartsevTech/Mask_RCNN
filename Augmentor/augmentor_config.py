@@ -12,6 +12,7 @@ augConfig = {
 
     #relevant algorithm options:
     'resizeWidth': 768,
-    'resizeHeight': 512
+    'resizeHeight': 512,
+    'sizeOfExpectedAugmentedDataset': 2000
 
 }

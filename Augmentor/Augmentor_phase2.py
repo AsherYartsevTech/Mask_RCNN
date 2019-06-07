@@ -19,8 +19,8 @@ def aug_PerformResizePipe(src_path, ground_truth_path, destination_path, augConf
     p.random_brightness(probability=0.3, min_factor=0.7, max_factor=1.3)
     p.skew(probability=0.1, magnitude=0.1)
 
-    # randomly choose and augment from original dataset , x-times.
-    p.sample(2000)
+    # randomly choose and augment from original dataset , augConfig['sizeOfExpectedAugmentedDataset']-times.
+    p.sample(augConfig['sizeOfExpectedAugmentedDataset'])
 
 
 def aug_PerformAugmentingPipe(src_path, ground_truth_path, destination_path, augConfig):
