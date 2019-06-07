@@ -1,7 +1,7 @@
-from Augmentor_phase1 import *
-from Augmentor_phase2 import *
-from Augmentor_phase2_5_renamer import *
-from Augmentor_phase3 import *
+from Augmentor.Augmentor_phase1 import *
+from Augmentor.Augmentor_phase2 import *
+from Augmentor.Augmentor_phase2_5_renamer import *
+from Augmentor.Augmentor_phase3 import *
 import os.path
 import os
 import shutil
