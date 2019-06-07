@@ -44,6 +44,8 @@ class AugmentHelper(object):
         purge(self.output_dataset_path, "ground_truth_")
 
 
+
+
 augmentor = AugmentHelper("/home/simon/Documents/cucu_dataset/real/4000/cucumber/train/original", 
                             "/home/simon/Documents/cucu_dataset/real/1024/cucumber/train/original")
 augmentor.generate() 

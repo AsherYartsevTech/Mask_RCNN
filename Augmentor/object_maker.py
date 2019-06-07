@@ -1,6 +1,6 @@
 import numpy
 from PIL import Image, ImageDraw
-from pycocotools.coco import COCO
+from cucu_train.cocoapi.PythonAPI.coco import COCO
 
 
 
