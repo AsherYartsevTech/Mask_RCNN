@@ -2,6 +2,7 @@ from Augmentor.Augmentor_phase1 import *
 from Augmentor.Augmentor_phase2 import *
 from Augmentor.Augmentor_phase2_5_renamer import *
 from Augmentor.Augmentor_phase3 import *
+from Augmentor.augmentor_config import augConfig
 import os.path
 import os
 import shutil
@@ -46,14 +47,13 @@ class AugmentHelper(object):
 
 
 
-augmentor = AugmentHelper("/home/simon/Documents/cucu_dataset/real/4000/cucumber/train/original", 
-                            "/home/simon/Documents/cucu_dataset/real/1024/cucumber/train/original")
-augmentor.generate() 
+augmentorFirstPhase = AugmentHelper(augConfig['datasetFolderPath'] + "/real/4000/cucumber/train/original",
+                            augConfig['datasetFolderPath'] + "/cucu_dataset/real/1024/cucumber/train/original")
+augmentorFirstPhase.generate()
 
-augmentor = AugmentHelper("/home/simon/Documents/cucu_dataset/real/1024/cucumber/train/original", 
-                            "/home/simon/Documents/cucu_dataset/real/1024/cucumber/train/augmented")
-#todo asher: recomment everything
-augmentor.generate() 
+augmentorSecondPhase = AugmentHelper(augConfig['datasetFolderPath'] + "/real/1024/cucumber/train/original",
+                            augConfig['datasetFolderPath'] + "real/1024/cucumber/train/augmented")
+augmentorSecondPhase.generate()
 
 print("finish")
 
